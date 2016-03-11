@@ -1,12 +1,15 @@
 package com.msys.web.view;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.List;
@@ -82,20 +85,32 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 		String[] orderItems;
 		String[] orderDetails;
+		Set<OrderItem> setOrderItem = new HashSet<OrderItem>();
 
 		try {
 			File f = new File(filename);
-			DataInputStream dis = new DataInputStream(new FileInputStream(f.getAbsolutePath()));
+			//DataInputStream dis = new DataInputStream(new FileInputStream(f.getAbsolutePath()));
+			InputStream inputStream       = new FileInputStream(f.getAbsolutePath());
+			Reader      inputStreamReader = new InputStreamReader(inputStream);
+			BufferedReader dis = new BufferedReader(inputStreamReader);
+	
 			String input;
-
 			ps = new PipedOutputStream();
 			is = new PipedInputStream(ps);
 			PrintStream os = new PrintStream(ps);
-
+			
 			while ((input = dis.readLine()) != null) {
-
+				
 				if (input.contains("oc;")) {
+					
 					orderDetails = input.substring(3, input.indexOf("[")).split(";");
+
+					SimpleDateFormat formatter = new SimpleDateFormat("dd.mm.yyyy");
+					Order order1 = new Order();
+					order1.setDeliveryDate(formatter.parse(orderDetails[0]));
+					order1.setValidFrom(formatter.parse(orderDetails[1]));
+					order1.setValidTo(formatter.parse(orderDetails[2]));
+					order1.setAvalabileAt(2);
 
 					Matcher m = Pattern.compile("(?<=\\[)(.+?)(?=\\])").matcher(input);
 
@@ -103,28 +118,18 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 						orderItems = m.group().split(";");
 
-						SimpleDateFormat formatter = new SimpleDateFormat("dd.mm.yyyy");
-
-						Order order1 = new Order();
-						order1.setDeliveryDate(formatter.parse(orderDetails[0]));
-						order1.setValidFrom(formatter.parse(orderDetails[1]));
-						order1.setValidTo(formatter.parse(orderDetails[2]));
-						order1.setAvalabileAt(2);
-
 						OrderItem orderItem1 = new OrderItem();
 						orderItem1.setArticles(new Article(Integer.parseInt(orderItems[0])));
 						orderItem1.setQuantity(Integer.parseInt(orderItems[1]));
 						orderItem1.setSuppliers(new Supplier(Integer.parseInt(orderItems[2])));
 						orderItem1.setOrders(order1);
 
-						Set<OrderItem> setOrderItem = new HashSet();
-						setOrderItem.add(orderItem1);
-
-						order1.setOrderItems(setOrderItem);
-
-						orderRepo.save(order1);
-
+						setOrderItem.add(orderItem1);						
 					}
+
+					order1.setOrderItems(setOrderItem);
+					orderRepo.save(order1);
+
 					grid.setHeight(300, Unit.PIXELS);
 					grid.setWidth(70, Unit.PERCENTAGE);
 					grid.setColumns("id", "deliveryDate", "validFrom", "validTo");

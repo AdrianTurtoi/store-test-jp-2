@@ -39,14 +39,11 @@ create table proiect.stock
          quantity number (5)
       );
 	  
+ALTER TABLE proiect.order_item ADD id_order number (9) not null constraint fk_order_id_1 references proiect.orders (id);
 
-ALTER TABLE adi_test_db.order_item ADD id_order BIGINT;
+ALTER TABLE proiect.orders ADD discriminator VARCHAR2(20) NOT NULL;
 
-ALTER TABLE adi_test_db.order_item ADD CONSTRAINT fk_order_id_1 FOREIGN KEY (id_order) REFERENCES adi_test_db.orders(id);
-
-ALTER TABLE adi_test_db.orders ADD discriminator VARCHAR(20) NOT NULL;
-
-ALTER TABLE adi_test_db.supplier ADD discriminator VARCHAR(20) NOT NULL;
+ALTER TABLE proiect.supplier ADD discriminator VARCHAR2(20) NOT NULL;
 
 delete from adi_test_db.order_item;
 delete from adi_test_db.orders;

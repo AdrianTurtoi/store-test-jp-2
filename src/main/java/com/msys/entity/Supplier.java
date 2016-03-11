@@ -25,7 +25,7 @@ import javax.persistence.Table;
 public class Supplier { 
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "ID")
 	private Long id; 
 	
