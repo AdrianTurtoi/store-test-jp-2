@@ -22,6 +22,7 @@ public class Order {
 	private Date deliveryDate;
 
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "orders", cascade = CascadeType.ALL)
+	@OrderBy("articles ASC")
 	private Set<OrderItem> orderItems;
 
 	@Column(name = "VALID_FROM")

@@ -89,20 +89,19 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 		try {
 			File f = new File(filename);
-			//DataInputStream dis = new DataInputStream(new FileInputStream(f.getAbsolutePath()));
-			InputStream inputStream       = new FileInputStream(f.getAbsolutePath());
-			Reader      inputStreamReader = new InputStreamReader(inputStream);
+			InputStream inputStream = new FileInputStream(f.getAbsolutePath());
+			Reader inputStreamReader = new InputStreamReader(inputStream);
 			BufferedReader dis = new BufferedReader(inputStreamReader);
-	
+
 			String input;
 			ps = new PipedOutputStream();
 			is = new PipedInputStream(ps);
 			PrintStream os = new PrintStream(ps);
-			
+
 			while ((input = dis.readLine()) != null) {
-				
+
 				if (input.contains("oc;")) {
-					
+
 					orderDetails = input.substring(3, input.indexOf("[")).split(";");
 
 					SimpleDateFormat formatter = new SimpleDateFormat("dd.mm.yyyy");
@@ -124,38 +123,12 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 						orderItem1.setSuppliers(new Supplier(Integer.parseInt(orderItems[2])));
 						orderItem1.setOrders(order1);
 
-						setOrderItem.add(orderItem1);						
+						setOrderItem.add(orderItem1);
 					}
 
 					order1.setOrderItems(setOrderItem);
 					orderRepo.save(order1);
-
-					grid.setHeight(300, Unit.PIXELS);
-					grid.setWidth(70, Unit.PERCENTAGE);
-					grid.setColumns("id", "deliveryDate", "validFrom", "validTo");
-					grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
-
-					grid.addSelectionListener(e -> {
-						if (e.getSelected().isEmpty()) {
-							grid1.setVisible(false);
-						} else {
-							Order orderSelected = (Order) e.getSelected().iterator().next();
-							grid1.setHeight(30, Unit.PERCENTAGE);
-							grid1.setWidth(100, Unit.PERCENTAGE);
-							List<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
-							if (orderItemsList != null) {
-								final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(
-										OrderItem.class, orderItemsList);
-
-								ds.addNestedContainerBean("articles");
-								ds.addNestedContainerBean("suppliers");
-								grid1.setColumns("articles.articleNo", "articles.articleName", "quantity",
-										"suppliers.supplierNo", "suppliers.supplierName");
-								grid1.setContainerDataSource(ds);
-							}
-
-						}
-					});
+				
 
 				} else if (input.contains("on;")) {
 
@@ -165,6 +138,34 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 				}
 			}
+
+			grid.setHeight(300, Unit.PIXELS);
+			grid.setWidth(70, Unit.PERCENTAGE);
+			grid.setColumns("id", "deliveryDate", "validFrom", "validTo");
+			grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
+
+			grid.addSelectionListener(e -> {
+				if (e.getSelected().isEmpty()) {
+					grid1.setVisible(false);
+				} else {
+					Order orderSelected = (Order) e.getSelected().iterator().next();
+					grid1.setHeight(30, Unit.PERCENTAGE);
+					grid1.setWidth(100, Unit.PERCENTAGE);
+					List<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
+					if (orderItemsList != null) {
+						final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
+								orderItemsList);
+
+						ds.addNestedContainerBean("articles");
+						ds.addNestedContainerBean("suppliers");
+						grid1.setColumns("articles.articleNo", "articles.articleName", "quantity",
+								"suppliers.supplierNo", "suppliers.supplierName");
+						grid1.setContainerDataSource(ds);
+					}
+
+				}
+			});
+
 			os.close();
 		} catch (Exception e) {
 			System.out.println("StringUtils reverse: " + e);

@@ -30,7 +30,7 @@ import com.msys.entity.User;
 @ComponentScan("com.msys.web.login")
 @SpringBootApplication
 
-public class StoreMSysApplication implements CommandLineRunner {
+public class StoreMSysApplication /*implements CommandLineRunner*/ {
 
 	private static final Logger log = LoggerFactory.getLogger(StoreMSysApplication.class);
 
@@ -41,7 +41,7 @@ public class StoreMSysApplication implements CommandLineRunner {
 		SpringApplication.run(StoreMSysApplication.class, args);
 	}
 
-	@Override
+	/*@Override
 	@Transactional
 	public void run(String... strings) throws Exception {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd.mm.yyyy");
@@ -69,9 +69,8 @@ public class StoreMSysApplication implements CommandLineRunner {
 		setOrderItem.add(orderItem2);
 
 		order1.setOrderItems(setOrderItem);
-
-		// orderRepository.save(order1);
-	}
+		orderRepository.save(order1);
+	}*/
 
 	@Bean
 	public CommandLineRunner loadData(UserRepository userRepo) {

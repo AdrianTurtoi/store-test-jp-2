@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 @Entity
@@ -29,7 +30,7 @@ public class Supplier {
 	@Column(name = "ID")
 	private Long id; 
 	
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "suppliers", cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "suppliers", cascade = CascadeType.ALL)	
 	Set <OrderItem> orderItem;
 	
 	@Column(name = "SUPPLIER_NO")
