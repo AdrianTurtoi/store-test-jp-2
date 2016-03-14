@@ -46,13 +46,13 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	private final Grid grid1 = new Grid();
 	private OrderRepository orderRepo;
 	private OrderItemRepository orderItemRepo;
-
+	
 	public void setOrderRepository(OrderRepository order) {
 		this.orderRepo = order;
-	}
+	} 
 
-	public void setOrderItemRepository(OrderItemRepository order) {
-		this.orderItemRepo = order;
+	public void setOrderItemRepository(OrderItemRepository orderItem) {
+		this.orderItemRepo = orderItem;
 	}
 
 	final Upload upload = new Upload("Upload the file here", this);
@@ -77,15 +77,14 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	public void enter(ViewChangeEvent event) {
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	@Transactional
 	public OutputStream receiveUpload(String filename, String mimeType) {
 		PipedOutputStream ps = null;
-		PipedInputStream is = null;
-
 		String[] orderItems;
 		String[] orderDetails;
-		Set<OrderItem> setOrderItem = new HashSet<OrderItem>();
+		Set<Order> setOrder = new HashSet<Order>();
 
 		try {
 			File f = new File(filename);
@@ -95,7 +94,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 			String input;
 			ps = new PipedOutputStream();
-			is = new PipedInputStream(ps);
+			new PipedInputStream(ps);
 			PrintStream os = new PrintStream(ps);
 
 			while ((input = dis.readLine()) != null) {
@@ -105,30 +104,35 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 					orderDetails = input.substring(3, input.indexOf("[")).split(";");
 
 					SimpleDateFormat formatter = new SimpleDateFormat("dd.mm.yyyy");
-					Order order1 = new Order();
-					order1.setDeliveryDate(formatter.parse(orderDetails[0]));
-					order1.setValidFrom(formatter.parse(orderDetails[1]));
-					order1.setValidTo(formatter.parse(orderDetails[2]));
-					order1.setAvalabileAt(2);
+					Order order = new Order();
+					order.setDeliveryDate(formatter.parse(orderDetails[0]));
+					order.setValidFrom(formatter.parse(orderDetails[1]));
+					order.setValidTo(formatter.parse(orderDetails[2]));
+					order.setAvalabileAt(2);
 
 					Matcher m = Pattern.compile("(?<=\\[)(.+?)(?=\\])").matcher(input);
+
+					Set<OrderItem> setOrderItem = new HashSet<OrderItem>();
 
 					while (m.find()) {
 
 						orderItems = m.group().split(";");
 
 						OrderItem orderItem1 = new OrderItem();
-						orderItem1.setArticles(new Article(Integer.parseInt(orderItems[0])));
+						Article article = new Article(Integer.parseInt(orderItems[0]));
+						orderItem1.setArticles(article);
 						orderItem1.setQuantity(Integer.parseInt(orderItems[1]));
-						orderItem1.setSuppliers(new Supplier(Integer.parseInt(orderItems[2])));
-						orderItem1.setOrders(order1);
+						Supplier supplier = new Supplier(Integer.parseInt(orderItems[2]));
+						orderItem1.setSuppliers(supplier);
+						orderItem1.setOrders(order);
 
 						setOrderItem.add(orderItem1);
 					}
 
-					order1.setOrderItems(setOrderItem);
-					orderRepo.save(order1);
-				
+					order.setOrderItems(setOrderItem);
+					setOrder.add(order);
+					
+					orderRepo.save(order);
 
 				} else if (input.contains("on;")) {
 
@@ -138,6 +142,12 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 				}
 			}
+
+			// Iterator<Order> ite = setOrder.iterator();
+			// while (ite.hasNext()) {
+			// Order order = ite.next();
+			// orderRepo.save(order);
+			// }
 
 			grid.setHeight(300, Unit.PIXELS);
 			grid.setWidth(70, Unit.PERCENTAGE);
@@ -168,7 +178,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 			os.close();
 		} catch (Exception e) {
-			System.out.println("StringUtils reverse: " + e);
+			System.out.println("StringUtils reverse: " + e.getMessage());
 		}
 		return ps;
 	}
