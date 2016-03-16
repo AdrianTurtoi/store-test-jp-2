@@ -31,9 +31,13 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.spring.annotation.SpringComponent;
 import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Grid;
+import com.vaadin.ui.Grid.MultiSelectionModel;
+import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.VerticalLayout;
 
 @SpringComponent
@@ -46,10 +50,11 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	private final Grid grid1 = new Grid();
 	private OrderRepository orderRepo;
 	private OrderItemRepository orderItemRepo;
-	
+	Button deleteButton = new Button("Delete");
+
 	public void setOrderRepository(OrderRepository order) {
 		this.orderRepo = order;
-	} 
+	}
 
 	public void setOrderItemRepository(OrderItemRepository orderItem) {
 		this.orderItemRepo = orderItem;
@@ -62,7 +67,8 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	}
 
 	public ImportView() {
-		VerticalLayout mainLayout = new VerticalLayout(upload, grid, grid1);
+
+		VerticalLayout mainLayout = new VerticalLayout(upload, grid, grid1, deleteButton);
 		mainLayout.setSizeFull();
 		mainLayout.setComponentAlignment(upload, Alignment.TOP_CENTER);
 		mainLayout.setComponentAlignment(grid, Alignment.MIDDLE_CENTER);
@@ -71,6 +77,31 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		CssLayout csLay = new CssLayout(mainLayout);
 		csLay.setSizeFull();
 		setCompositionRoot(csLay);
+
+		grid.setHeight(300, Unit.PIXELS);
+		grid.setWidth(70, Unit.PERCENTAGE);
+		grid.setColumns("id", "deliveryDate", "validFrom", "validTo");
+		grid.setSelectionMode(SelectionMode.SINGLE);
+
+		grid1.setHeight(30, Unit.PERCENTAGE);
+		grid1.setWidth(100, Unit.PERCENTAGE);
+		grid1.setSelectionMode(SelectionMode.MULTI);
+		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
+
+		deleteButton.addClickListener(new Button.ClickListener() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				for (Object itemId : selection.getSelectedRows()) {
+					orderItemRepo.delete((OrderItem) itemId);
+					grid1.getContainerDataSource().removeItem(itemId);
+				}
+				grid1.getSelectionModel().reset();
+				// event.getButton().setEnabled(false);
+			}
+		});
+		// deleteButton.setEnabled(grid1.getSelectedRows().size() > 0);
 	}
 
 	@Override
@@ -131,15 +162,12 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 					order.setOrderItems(setOrderItem);
 					setOrder.add(order);
-					
+
 					orderRepo.save(order);
 
 				} else if (input.contains("on;")) {
-
 				} else if (input.contains("os;")) {
-
 				} else if (input.contains("ol;")) {
-
 				}
 			}
 
@@ -149,9 +177,6 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 			// orderRepo.save(order);
 			// }
 
-			grid.setHeight(300, Unit.PIXELS);
-			grid.setWidth(70, Unit.PERCENTAGE);
-			grid.setColumns("id", "deliveryDate", "validFrom", "validTo");
 			grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
 
 			grid.addSelectionListener(e -> {
@@ -159,8 +184,6 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 					grid1.setVisible(false);
 				} else {
 					Order orderSelected = (Order) e.getSelected().iterator().next();
-					grid1.setHeight(30, Unit.PERCENTAGE);
-					grid1.setWidth(100, Unit.PERCENTAGE);
 					List<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
 					if (orderItemsList != null) {
 						final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
@@ -171,8 +194,8 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 						grid1.setColumns("articles.articleNo", "articles.articleName", "quantity",
 								"suppliers.supplierNo", "suppliers.supplierName");
 						grid1.setContainerDataSource(ds);
-					}
 
+					}
 				}
 			});
 
