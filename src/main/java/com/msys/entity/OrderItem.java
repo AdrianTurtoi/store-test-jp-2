@@ -20,18 +20,18 @@ public class OrderItem {
 	@Column(name = "ID")
 	private Long id;	
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "ID_ARTICLE")
 	private Article articles;
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "ID_ORDER")
 	private Order orders;
 	
 	@Column(name = "QUANTITY")
 	private int quantity;
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "ID_SUPPLIER")
 	private Supplier suppliers;
 	
