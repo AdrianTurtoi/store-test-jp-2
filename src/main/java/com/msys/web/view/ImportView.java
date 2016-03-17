@@ -66,6 +66,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	public void init() {
 	}
 
+	 
 	public ImportView() {
 
 		VerticalLayout mainLayout = new VerticalLayout(upload, grid, grid1, deleteButton);
@@ -87,14 +88,17 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		grid1.setWidth(100, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
-
+		
+	
 		deleteButton.addClickListener(new Button.ClickListener() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
+			@Transactional
 			public void buttonClick(ClickEvent event) {
 				for (Object itemId : selection.getSelectedRows()) {
-					orderItemRepo.delete((OrderItem) itemId);
+					OrderItem orderItem = (OrderItem) itemId;
+					orderItemRepo.deleteByOrderItemId(orderItem.getId());
 					grid1.getContainerDataSource().removeItem(itemId);
 				}
 				grid1.getSelectionModel().reset();
