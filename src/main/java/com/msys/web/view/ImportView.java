@@ -42,6 +42,8 @@ import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
 
 @SpringComponent
 @UIScope
@@ -88,12 +90,12 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		csLay.setSizeFull();
 		setCompositionRoot(csLay);
 
-		grid.setHeight(20, Unit.PERCENTAGE);
+		grid.setHeight(200, Unit.PIXELS);
 		grid.setWidth(70, Unit.PERCENTAGE);
 		grid.setColumns("deliveryDate", "validFrom", "validTo");
 		grid.setSelectionMode(SelectionMode.SINGLE);
 
-		grid1.setHeight(20, Unit.PERCENTAGE);
+		grid1.setHeight(200, Unit.PIXELS);
 		grid1.setWidth(100, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
@@ -106,27 +108,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 			public void buttonClick(ClickEvent event) {
 				grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
 
-				grid.addSelectionListener(e -> {
-					if (e.getSelected().isEmpty()) {
-						grid1.setVisible(false);
-					} else {
-						Order orderSelected = (Order) e.getSelected().iterator().next();
-						putData(ui, orderSelected);
-
-						List<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
-						if (orderItemsList != null) {
-							final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
-									orderItemsList);
-
-							ds.addNestedContainerBean("articles");
-							ds.addNestedContainerBean("suppliers");
-							grid1.setColumns("articles.articleNo", "articles.articleName", "quantity",
-									"suppliers.supplierNo", "suppliers.supplierName");
-							grid1.setContainerDataSource(ds);
-
-						}
-					}
-				});
+				setGridItems();
 			}
 		});
 
@@ -139,7 +121,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 				for (Object itemId : selection.getSelectedRows()) {
 					OrderItem orderItem = (OrderItem) itemId;
 					orderItemRepo.deleteByOrderItemId(orderItem.getId());
-					grid1.getContainerDataSource().removeItem(itemId); 
+					grid1.getContainerDataSource().removeItem(itemId);
 				}
 				grid1.getSelectionModel().reset();
 				// event.getButton().setEnabled(false);
@@ -161,8 +143,19 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 				subWin.setPositionY(150);
 
 				UI.getCurrent().addWindow(subWin);
-				grid.markAsDirty();
-				grid1.markAsDirty();
+
+				subWin.addCloseListener(new Window.CloseListener() {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void windowClose(CloseEvent e) {
+						grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
+
+						setGridItems();
+					}
+				});
+
 			}
 		});
 	}
@@ -234,41 +227,39 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 				}
 			}
 
-			// Iterator<Order> ite = setOrder.iterator();
-			// while (ite.hasNext()) {
-			// Order order = ite.next();
-			// orderRepo.save(order);
-			// }
-
 			grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
 
-			grid.addSelectionListener(e -> {
-				if (e.getSelected().isEmpty()) {
-					grid1.setVisible(false);
-				} else {
-					Order orderSelected = (Order) e.getSelected().iterator().next();
-					putData(ui, orderSelected);
-
-					List<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
-					if (orderItemsList != null) {
-						final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
-								orderItemsList);
-
-						ds.addNestedContainerBean("articles");
-						ds.addNestedContainerBean("suppliers");
-						grid1.setColumns("articles.articleNo", "articles.articleName", "quantity",
-								"suppliers.supplierNo", "suppliers.supplierName");
-						grid1.setContainerDataSource(ds);
-
-					}
-				}
-			});
+			setGridItems();
 
 			os.close();
 		} catch (Exception e) {
 			System.out.println("StringUtils reverse: " + e.getMessage());
 		}
 		return ps;
+	}
+
+	public void setGridItems() {
+		grid.addSelectionListener(e -> {
+			if (e.getSelected().isEmpty()) {
+				// grid1.setVisible(false);
+			} else {
+				Order orderSelected = (Order) e.getSelected().iterator().next();
+				putData(ui, orderSelected);
+
+				Set<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
+				if (orderItemsList != null) {
+					final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
+							orderItemsList);
+
+					ds.addNestedContainerBean("articles");
+					ds.addNestedContainerBean("suppliers");
+					grid1.setColumns("articles.articleNo", "articles.articleName", "quantity", "suppliers.supplierNo",
+							"suppliers.supplierName");
+					grid1.setContainerDataSource(ds);
+
+				}
+			}
+		});
 	}
 
 	public static void putData(UI ui, Order order) {

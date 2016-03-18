@@ -30,7 +30,9 @@ public class ImportViewAddItem extends Window {
 	private static final long serialVersionUID = 1L;
 	final UI ui = UI.getCurrent();
 
+	@SuppressWarnings("unused")
 	private OrderItemRepository orderItemRepo;
+	@SuppressWarnings("unused")
 	private OrderRepository orderRepo; 
 
 	@Autowired
@@ -78,8 +80,7 @@ public class ImportViewAddItem extends Window {
 
 		setContent(contentH);
 
-		// Disable the close button
-		setClosable(false);
+		//setClosable(false);
 
 		save.addClickListener(new ClickListener() {
 
@@ -100,7 +101,7 @@ public class ImportViewAddItem extends Window {
 				orderItem.setOrders(order);
 
 				Set<OrderItem> setOrderItem = new HashSet<OrderItem>();
-				setOrderItem = order.getOrderItems();
+				setOrderItem = orderItemRepo.findByOrders(order);
 				setOrderItem.add(orderItem);
 
 				order.setOrderItems(setOrderItem);

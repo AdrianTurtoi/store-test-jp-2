@@ -18,31 +18,32 @@ public class OrderItem {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "ID")
-	private Long id;	
-	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH })
-	@JoinColumn(name = "ID_ARTICLE")
+	private Long id;
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST,
+			CascadeType.MERGE /* , CascadeType.REFRESH */ })
+	@JoinColumn(name = "ID_ARTICLE", nullable = false)
 	private Article articles;
-	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH })
-	@JoinColumn(name = "ID_ORDER")
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST
+			/* ,CascadeType.MERGE, CascadeType.REFRESH */ })
+	@JoinColumn(name = "ID_ORDER", nullable = false)
 	private Order orders;
-	
+
 	@Column(name = "QUANTITY")
 	private int quantity;
-	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH })
-	@JoinColumn(name = "ID_SUPPLIER")
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST,
+			CascadeType.MERGE /* , CascadeType.REFRESH */ })
+	@JoinColumn(name = "ID_SUPPLIER", nullable = false)
 	private Supplier suppliers;
-	
-	
-	public OrderItem() { 
+
+	public OrderItem() {
 	}
 
-	public OrderItem(int quantity) {	
-		this.quantity = quantity;		
-	} 
-
+	public OrderItem(int quantity) {
+		this.quantity = quantity;
+	}
 
 	public Long getId() {
 		return id;
@@ -51,12 +52,11 @@ public class OrderItem {
 	public void setId(Long id) {
 		this.id = id;
 	}
- 
-	
+
 	public Order getOrders() {
 		return orders;
 	}
-	
+
 	public void setOrders(Order order) {
 		this.orders = order;
 	}
@@ -83,11 +83,5 @@ public class OrderItem {
 
 	public void setSuppliers(Supplier supplier) {
 		this.suppliers = supplier;
-	}
-
-	@Override
-	public String toString() {
-		return "OrderItem [id=" + id + ", ordersItems=" + orders + ", article=" + articles + ", quantity=" + quantity
-				+ ", supplier=" + suppliers + "]";
 	}
 }

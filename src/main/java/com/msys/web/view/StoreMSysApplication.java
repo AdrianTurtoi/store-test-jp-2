@@ -11,17 +11,8 @@ import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.msys.entity.Article;
-import com.msys.entity.Order;
-import com.msys.entity.OrderItem;
-import com.msys.entity.Supplier;
 import com.msys.entity.User;
 
 @EnableJpaRepositories("com.msys.repository")
@@ -34,6 +25,7 @@ public class StoreMSysApplication /*implements CommandLineRunner*/ {
 
 	private static final Logger log = LoggerFactory.getLogger(StoreMSysApplication.class);
 
+	@SuppressWarnings("unused")
 	@Autowired
 	private OrderRepository orderRepository;
 
@@ -93,7 +85,7 @@ public class StoreMSysApplication /*implements CommandLineRunner*/ {
 			// fetch Users by last name
 			log.info("USer found with findByName('adrian.turtoi@gmail.com'):");
 			log.info("--------------------------------------------");
-			log.info(userRepo.findByEmail("adrianturtoi@gmail.com").toString());
+			log.info(userRepo.findByEmail("adrianturtoi1@gmail.com").toString());
 			log.info("");
 
 		};
