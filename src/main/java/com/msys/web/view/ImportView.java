@@ -33,6 +33,7 @@ import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Grid;
@@ -54,6 +55,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	private OrderItemRepository orderItemRepo;
 	Button deleteButton = new Button("Delete");
 	Button insertButton = new Button("Insert");
+	Button fetchButton = new Button("Fetch");
 	final UI ui = UI.getCurrent();
 
 	public void setOrderRepository(OrderRepository order) {
@@ -71,8 +73,9 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	}
 
 	public ImportView() {
-		
+
 		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.addComponent(fetchButton);
 		buttonLayout.addComponent(deleteButton);
 		buttonLayout.addComponent(insertButton);
 		VerticalLayout mainLayout = new VerticalLayout(upload, grid, grid1, buttonLayout);
@@ -85,17 +88,49 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		csLay.setSizeFull();
 		setCompositionRoot(csLay);
 
-		grid.setHeight(300, Unit.PIXELS);
+		grid.setHeight(20, Unit.PERCENTAGE);
 		grid.setWidth(70, Unit.PERCENTAGE);
 		grid.setColumns("deliveryDate", "validFrom", "validTo");
 		grid.setSelectionMode(SelectionMode.SINGLE);
 
-		grid1.setHeight(30, Unit.PERCENTAGE);
+		grid1.setHeight(20, Unit.PERCENTAGE);
 		grid1.setWidth(100, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
 
-		deleteButton.addClickListener(new Button.ClickListener() {
+		fetchButton.addClickListener(new ClickListener() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
+
+				grid.addSelectionListener(e -> {
+					if (e.getSelected().isEmpty()) {
+						grid1.setVisible(false);
+					} else {
+						Order orderSelected = (Order) e.getSelected().iterator().next();
+						putData(ui, orderSelected);
+
+						List<OrderItem> orderItemsList = orderItemRepo.findByOrders(orderSelected);
+						if (orderItemsList != null) {
+							final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
+									orderItemsList);
+
+							ds.addNestedContainerBean("articles");
+							ds.addNestedContainerBean("suppliers");
+							grid1.setColumns("articles.articleNo", "articles.articleName", "quantity",
+									"suppliers.supplierNo", "suppliers.supplierName");
+							grid1.setContainerDataSource(ds);
+
+						}
+					}
+				});
+			}
+		});
+
+		deleteButton.addClickListener(new ClickListener() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -104,7 +139,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 				for (Object itemId : selection.getSelectedRows()) {
 					OrderItem orderItem = (OrderItem) itemId;
 					orderItemRepo.deleteByOrderItemId(orderItem.getId());
-					grid1.getContainerDataSource().removeItem(itemId);
+					grid1.getContainerDataSource().removeItem(itemId); 
 				}
 				grid1.getSelectionModel().reset();
 				// event.getButton().setEnabled(false);
@@ -118,15 +153,16 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 			@Override
 			public void buttonClick(ClickEvent event) {
-				ImportViewAddItem subWin = new ImportViewAddItem(orderItemRepo);
+				ImportViewAddItem subWin = new ImportViewAddItem(orderItemRepo, orderRepo);
 				subWin.setHeight("400px");
 				subWin.setWidth("600px");
 
-				subWin.setPositionX(200);
-				subWin.setPositionY(50);
+				subWin.setPositionX(350);
+				subWin.setPositionY(150);
 
 				UI.getCurrent().addWindow(subWin);
-
+				grid.markAsDirty();
+				grid1.markAsDirty();
 			}
 		});
 	}
