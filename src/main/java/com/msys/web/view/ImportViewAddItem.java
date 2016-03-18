@@ -1,14 +1,16 @@
 package com.msys.web.view;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
-
 import com.msys.entity.Article;
 import com.msys.entity.Order;
 import com.msys.entity.OrderItem;
 import com.msys.entity.Supplier;
 import com.msys.repository.OrderItemRepository;
+import com.msys.repository.OrderRepository;
 import com.vaadin.spring.annotation.SpringComponent;
 import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.Button;
@@ -27,19 +29,16 @@ public class ImportViewAddItem extends Window {
 
 	private static final long serialVersionUID = 1L;
 	final UI ui = UI.getCurrent();
-	
-	private OrderItemRepository orderItemRepo;
-	
-	public void setOrderItemRepository (OrderItemRepository orderItemRepo) {
-		this.orderItemRepo = orderItemRepo;
-	}
-	
-	public static final String NAME = "importAddItem";
 
-	@Autowired 
-	public ImportViewAddItem(OrderItemRepository repository) {
-		super("Add Item"); // Set window caption
-		this.orderItemRepo = repository;		
+	private OrderItemRepository orderItemRepo;
+	private OrderRepository orderRepo; 
+
+	@Autowired
+	public ImportViewAddItem(OrderItemRepository orderItemRepo, OrderRepository orderRepo) {
+		super("Add Item");
+		this.orderItemRepo = orderItemRepo;
+		this.orderRepo = orderRepo;
+
 		center();
 
 		HorizontalLayout contentH = new HorizontalLayout();
@@ -71,7 +70,7 @@ public class ImportViewAddItem extends Window {
 		contentV1.addComponent(SupplierNameLabel);
 		contentV1.addComponent(SupplierName);
 		buttonLayout.addComponent(ok);
-		buttonLayout.addComponent(save); 
+		buttonLayout.addComponent(save);
 		contentV1.addComponent(buttonLayout);
 		contentV1.setMargin(true);
 		contentH.addComponent(contentV);
@@ -89,16 +88,24 @@ public class ImportViewAddItem extends Window {
 			@Override
 			@Transactional
 			public void buttonClick(ClickEvent event) {
-				OrderItem orderItem1 = new OrderItem();
+				
+				OrderItem orderItem = new OrderItem();
 				Article article = new Article(Integer.parseInt(ArticleNo.getValue()), ArticleName.getValue());
-				orderItem1.setArticles(article);
-				orderItem1.setQuantity(Integer.parseInt(Quantity.getValue()));
+				orderItem.setArticles(article);
+				orderItem.setQuantity(Integer.parseInt(Quantity.getValue()));
 				Supplier supplier = new Supplier(Integer.parseInt(SupplierNo.getValue()), SupplierName.getValue());
-				orderItem1.setSuppliers(supplier);
+				orderItem.setSuppliers(supplier);
+				
 				Order order = (Order) readData(ui, "order");
-				orderItem1.setOrders(order);
+				orderItem.setOrders(order);
 
-				orderItemRepo.save(orderItem1);
+				Set<OrderItem> setOrderItem = new HashSet<OrderItem>();
+				setOrderItem = order.getOrderItems();
+				setOrderItem.add(orderItem);
+
+				order.setOrderItems(setOrderItem);
+
+				orderRepo.save(order);
 
 			}
 		});
@@ -118,6 +125,6 @@ public class ImportViewAddItem extends Window {
 		Object object = ui.getSession().getAttribute(attribute);
 		ui.getSession().setAttribute(attribute, null);
 		return object;
-	} 
+	}
 
 }
