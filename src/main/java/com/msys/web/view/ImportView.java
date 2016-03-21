@@ -24,7 +24,10 @@ import com.msys.entity.OrderItem;
 import com.msys.entity.Supplier;
 import com.msys.repository.OrderItemRepository;
 import com.msys.repository.OrderRepository;
+import com.vaadin.data.Item;
+import com.vaadin.data.fieldgroup.FieldGroup.CommitEvent;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
+import com.vaadin.data.fieldgroup.FieldGroup.CommitHandler;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.navigator.View;
@@ -92,7 +95,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		buttonLayout.addComponent(deleteButton);
 		buttonLayout.addComponent(insertButton);
 		buttonLayout.addComponent(editButton);
-		buttonLayout.addComponent(saveButton);
+		// buttonLayout.addComponent(saveButton);
 		VerticalLayout mainLayout = new VerticalLayout(upload, grid, grid1, buttonLayout);
 		mainLayout.setSizeFull();
 		mainLayout.setComponentAlignment(upload, Alignment.TOP_CENTER);
@@ -112,8 +115,6 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		grid1.setWidth(100, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
 
-		// HeaderRow filterRow = grid1.appendHeaderRow();
-
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
 
 		editButton.addClickListener(new ClickListener() {
@@ -126,24 +127,22 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 				grid.setEditorSaveCaption("Save");
 				grid.setEditorCancelCaption("Cancel");
 
-			}
-		});
+				grid1.getEditorFieldGroup().addCommitHandler(new CommitHandler() {
+					@Override
+					public void preCommit(CommitEvent commitEvent) throws CommitException {
+					}
 
-		saveButton.addClickListener(new ClickListener() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void buttonClick(ClickEvent event) {
-				try {
-					grid1.saveEditor();
-				} catch (CommitException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+					@Override
+					public void postCommit(CommitEvent commitEvent) throws CommitException {
+						Object editedItemId = grid1.getEditedItemId();
+						orderItemRepo.save((OrderItem) editedItemId);
+						grid1.saveEditor();
+					}
+				});
 
 			}
 		});
+
 		fetchButton.addClickListener(new ClickListener() {
 
 			private static final long serialVersionUID = 1L;
