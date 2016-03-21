@@ -136,7 +136,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 					public void postCommit(CommitEvent commitEvent) throws CommitException {
 						Object editedItemId = grid1.getEditedItemId();
 						orderItemRepo.save((OrderItem) editedItemId);
-						grid1.saveEditor();
+						// grid1.saveEditor();
 					}
 				});
 
