@@ -13,6 +13,8 @@ import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +27,10 @@ import com.msys.entity.OrderItem;
 import com.msys.entity.Supplier;
 import com.msys.repository.OrderItemRepository;
 import com.msys.repository.OrderRepository;
+import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.spring.annotation.SpringComponent;
@@ -37,9 +42,12 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Grid;
+import com.vaadin.ui.Grid.HeaderCell;
+import com.vaadin.ui.Grid.HeaderRow;
 import com.vaadin.ui.Grid.MultiSelectionModel;
 import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -58,6 +66,8 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	Button deleteButton = new Button("Delete");
 	Button insertButton = new Button("Insert");
 	Button fetchButton = new Button("Fetch");
+	Button editButton = new Button("Edit");
+	Button saveButton = new Button("Save");
 	final UI ui = UI.getCurrent();
 
 	public void setOrderRepository(OrderRepository order) {
@@ -80,6 +90,8 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		buttonLayout.addComponent(fetchButton);
 		buttonLayout.addComponent(deleteButton);
 		buttonLayout.addComponent(insertButton);
+		buttonLayout.addComponent(editButton);
+		buttonLayout.addComponent(saveButton);
 		VerticalLayout mainLayout = new VerticalLayout(upload, grid, grid1, buttonLayout);
 		mainLayout.setSizeFull();
 		mainLayout.setComponentAlignment(upload, Alignment.TOP_CENTER);
@@ -98,8 +110,37 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		grid1.setHeight(200, Unit.PIXELS);
 		grid1.setWidth(100, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
+
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
 
+		editButton.addClickListener(new ClickListener() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				grid1.setEditorEnabled(true);
+				grid.setEditorSaveCaption("Save");
+				grid.setEditorCancelCaption("Cancel");
+
+			}
+		});
+
+		saveButton.addClickListener(new ClickListener() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				try {
+					grid1.saveEditor();
+				} catch (CommitException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+		});
 		fetchButton.addClickListener(new ClickListener() {
 
 			private static final long serialVersionUID = 1L;
@@ -256,6 +297,24 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 					grid1.setColumns("articles.articleNo", "articles.articleName", "quantity", "suppliers.supplierNo",
 							"suppliers.supplierName");
 					grid1.setContainerDataSource(ds);
+
+					// IndexedContainer container = ds;
+					HeaderRow filterRow = grid1.appendHeaderRow();
+
+					for (Object pid : grid1.getContainerDataSource().getContainerPropertyIds()) {
+						HeaderCell cell = filterRow.getCell(pid);
+
+						TextField filterField = new TextField();
+						filterField.setColumns(8);
+
+						filterField.addTextChangeListener(change -> {
+							ds.removeContainerFilters(pid);
+
+							if (!change.getText().isEmpty())
+								ds.addContainerFilter(new SimpleStringFilter(pid, change.getText(), true, false));
+						});
+						cell.setComponent(filterField);
+					}
 
 				}
 			}
