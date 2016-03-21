@@ -12,9 +12,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +26,6 @@ import com.msys.repository.OrderItemRepository;
 import com.msys.repository.OrderRepository;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -69,6 +65,11 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 	Button editButton = new Button("Edit");
 	Button saveButton = new Button("Save");
 	final UI ui = UI.getCurrent();
+	int i = 1;
+
+	HeaderRow filterRow = grid1.appendHeaderRow();
+	TextField filterFieldArticleName = new TextField();
+	TextField filterFieldSupplierName = new TextField();
 
 	public void setOrderRepository(OrderRepository order) {
 		this.orderRepo = order;
@@ -102,14 +103,16 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		csLay.setSizeFull();
 		setCompositionRoot(csLay);
 
-		grid.setHeight(200, Unit.PIXELS);
+		grid.setHeight(300, Unit.PIXELS);
 		grid.setWidth(70, Unit.PERCENTAGE);
 		grid.setColumns("deliveryDate", "validFrom", "validTo");
 		grid.setSelectionMode(SelectionMode.SINGLE);
 
-		grid1.setHeight(200, Unit.PIXELS);
+		grid1.setHeight(300, Unit.PIXELS);
 		grid1.setWidth(100, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
+
+		// HeaderRow filterRow = grid1.appendHeaderRow();
 
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
 
@@ -291,31 +294,50 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 				if (orderItemsList != null) {
 					final BeanItemContainer<OrderItem> ds = new BeanItemContainer<OrderItem>(OrderItem.class,
 							orderItemsList);
-
+					// ds.addAll(orderItemsList);
 					ds.addNestedContainerBean("articles");
 					ds.addNestedContainerBean("suppliers");
 					grid1.setColumns("articles.articleNo", "articles.articleName", "quantity", "suppliers.supplierNo",
 							"suppliers.supplierName");
 					grid1.setContainerDataSource(ds);
 
-					// IndexedContainer container = ds;
-					HeaderRow filterRow = grid1.appendHeaderRow();
+					HeaderCell articleNameFilter = filterRow.getCell("articles.articleName");
+					filterFieldArticleName.setColumns(8);
 
-					for (Object pid : grid1.getContainerDataSource().getContainerPropertyIds()) {
-						HeaderCell cell = filterRow.getCell(pid);
+					filterFieldArticleName.addTextChangeListener(change -> {
+						ds.removeContainerFilters("articles.articleName");
 
-						TextField filterField = new TextField();
-						filterField.setColumns(8);
+						if (!change.getText().isEmpty())
+							ds.addContainerFilter(
+									new SimpleStringFilter("articles.articleName", change.getText(), true, false));
+					});
 
-						filterField.addTextChangeListener(change -> {
-							ds.removeContainerFilters(pid);
+					articleNameFilter.setComponent(filterFieldArticleName);
 
-							if (!change.getText().isEmpty())
-								ds.addContainerFilter(new SimpleStringFilter(pid, change.getText(), true, false));
-						});
-						cell.setComponent(filterField);
-					}
+					HeaderCell supplierNameFilter = filterRow.getCell("suppliers.supplierName");
+					filterFieldSupplierName.setColumns(8);
 
+					filterFieldSupplierName.addTextChangeListener(change -> {
+						ds.removeContainerFilters("suppliers.supplierName");
+
+						if (!change.getText().isEmpty())
+							ds.addContainerFilter(
+									new SimpleStringFilter("suppliers.supplierName", change.getText(), true, false));
+					});
+
+					supplierNameFilter.setComponent(filterFieldSupplierName);
+
+					/*
+					 * for (Object pid : grid1.getContainerDataSource().
+					 * getContainerPropertyIds()) { HeaderCell cell =
+					 * filterRow.getCell(pid); TextField filterField = new
+					 * TextField(); filterField.setColumns(8);
+					 * filterField.addTextChangeListener(change -> {
+					 * ds.removeContainerFilters(pid); if
+					 * (!change.getText().isEmpty()) ds.addContainerFilter(new
+					 * SimpleStringFilter(pid, change.getText(), true, false));
+					 * }); cell.setComponent(filterField); }
+					 */
 				}
 			}
 		});
