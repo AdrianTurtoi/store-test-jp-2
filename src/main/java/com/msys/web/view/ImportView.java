@@ -112,7 +112,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		grid.setSelectionMode(SelectionMode.SINGLE);
 
 		grid1.setHeight(300, Unit.PIXELS);
-		grid1.setWidth(100, Unit.PERCENTAGE);
+		grid1.setWidth(85, Unit.PERCENTAGE);				
 		grid1.setSelectionMode(SelectionMode.MULTI);
 
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
@@ -298,6 +298,11 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 					ds.addNestedContainerBean("suppliers");
 					grid1.setColumns("articles.articleNo", "articles.articleName", "quantity", "suppliers.supplierNo",
 							"suppliers.supplierName");
+					grid1.getColumn("articles.articleNo").setWidth(150);
+					grid1.getColumn("articles.articleName").setWidth(300);
+					grid1.getColumn("suppliers.supplierNo").setWidth(150);
+					grid1.getColumn("quantity").setWidth(150);
+					//grid1.getColumn("suppliers.supplierName").setWidth(300);
 					grid1.setContainerDataSource(ds);
 
 					HeaderCell articleNameFilter = filterRow.getCell("articles.articleName");
