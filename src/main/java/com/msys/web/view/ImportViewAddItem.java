@@ -16,6 +16,7 @@ import com.vaadin.spring.annotation.UIScope;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
@@ -36,7 +37,7 @@ public class ImportViewAddItem extends Window {
 	private OrderRepository orderRepo; 
 
 	@Autowired
-	public ImportViewAddItem(OrderItemRepository orderItemRepo, OrderRepository orderRepo) {
+	public ImportViewAddItem(OrderItemRepository orderItemRepo, OrderRepository orderRepo, Grid grid) {
 		super("Add Item");
 		this.orderItemRepo = orderItemRepo;
 		this.orderRepo = orderRepo;
@@ -105,6 +106,8 @@ public class ImportViewAddItem extends Window {
 				setOrderItem.add(orderItem);
 
 				order.setOrderItems(setOrderItem);
+				
+				grid.getContainerDataSource().addItem(orderItem);
 
 				orderRepo.save(order);
 
