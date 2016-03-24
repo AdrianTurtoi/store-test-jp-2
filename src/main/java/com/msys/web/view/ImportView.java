@@ -17,6 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
+
+import org.omg.CORBA.CurrentOperations;
+
 import com.vaadin.ui.Upload;
 import com.msys.entity.Article;
 import com.msys.entity.Order;
@@ -195,7 +198,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 			@Override
 			public void buttonClick(ClickEvent event) {
-				ImportViewAddItem subWin = new ImportViewAddItem(orderItemRepo, orderRepo);
+				ImportViewAddItem subWin = new ImportViewAddItem(orderItemRepo, orderRepo, grid1);
 				subWin.setHeight("400px");
 				subWin.setWidth("600px");
 
@@ -210,9 +213,19 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 
 					@Override
 					public void windowClose(CloseEvent e) {
-						grid.setContainerDataSource(new BeanItemContainer<Order>(Order.class, orderRepo.findAll()));
 
-						setGridItems();
+						/*
+						 * Order currentOrder = (Order) grid.getSelectedRow();
+						 * Set<OrderItem> orderItemsList =
+						 * orderItemRepo.findByOrders(currentOrder); final
+						 * BeanItemContainer<OrderItem> ds = new
+						 * BeanItemContainer<OrderItem>(OrderItem.class,
+						 * orderItemsList);
+						 * ds.addNestedContainerBean("articles");
+						 * ds.addNestedContainerBean("suppliers");
+						 * grid1.setContainerDataSource(ds);
+						 */
+
 					}
 				});
 
