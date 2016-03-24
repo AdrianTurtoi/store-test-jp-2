@@ -24,7 +24,6 @@ import com.msys.entity.OrderItem;
 import com.msys.entity.Supplier;
 import com.msys.repository.OrderItemRepository;
 import com.msys.repository.OrderRepository;
-import com.vaadin.data.Item;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitEvent;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitHandler;
@@ -112,7 +111,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 		grid.setSelectionMode(SelectionMode.SINGLE);
 
 		grid1.setHeight(300, Unit.PIXELS);
-		grid1.setWidth(85, Unit.PERCENTAGE);				
+		grid1.setWidth(85, Unit.PERCENTAGE);
 		grid1.setSelectionMode(SelectionMode.MULTI);
 
 		MultiSelectionModel selection = (MultiSelectionModel) grid1.getSelectionModel();
@@ -161,13 +160,31 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 			@Override
 			@Transactional
 			public void buttonClick(ClickEvent event) {
-				for (Object itemId : selection.getSelectedRows()) {
-					OrderItem orderItem = (OrderItem) itemId;
-					orderItemRepo.deleteByOrderItemId(orderItem.getId());
-					grid1.getContainerDataSource().removeItem(itemId);
-				}
-				grid1.getSelectionModel().reset();
-				// event.getButton().setEnabled(false);
+
+				YesNoDialog yesno = new YesNoDialog("Delete", "Do you realy what to delete this record?",
+						new YesNoDialog.Callback() {
+							public void onDialogResult(boolean happy) {
+								if (happy) {
+									for (Object itemId : selection.getSelectedRows()) {
+										OrderItem orderItem = (OrderItem) itemId;
+										orderItemRepo.deleteByOrderItemId(orderItem.getId());
+										grid1.getContainerDataSource().removeItem(itemId);
+									}
+									grid1.getSelectionModel().reset();
+									// event.getButton().setEnabled(false);
+								} else {
+
+								}
+							}
+						});
+
+				yesno.setHeight("200px");
+				yesno.setWidth("300px");
+
+				yesno.setPositionX(350);
+				yesno.setPositionY(150);
+				UI.getCurrent().addWindow(yesno);
+
 			}
 		});
 		// deleteButton.setEnabled(grid1.getSelectedRows().size() > 0);
@@ -302,7 +319,7 @@ public class ImportView extends CustomComponent implements View, Upload.Receiver
 					grid1.getColumn("articles.articleName").setWidth(300);
 					grid1.getColumn("suppliers.supplierNo").setWidth(150);
 					grid1.getColumn("quantity").setWidth(150);
-					//grid1.getColumn("suppliers.supplierName").setWidth(300);
+					// grid1.getColumn("suppliers.supplierName").setWidth(300);
 					grid1.setContainerDataSource(ds);
 
 					HeaderCell articleNameFilter = filterRow.getCell("articles.articleName");
